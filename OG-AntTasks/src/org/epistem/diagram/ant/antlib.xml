@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<antlib>
+    <taskdef name="extract-src" classname="org.epistem.diagram.ant.SourceExtractorTask" />
+</antlib>

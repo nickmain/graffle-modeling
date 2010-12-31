@@ -1,0 +1,12 @@
+<project name="Test">
+
+    <path id="cp" >
+        <path location="eclipse-build" />
+    </path>
+    
+    <taskdef resource="org/epistem/diagram/ant/antlib.xml" classpathref="cp"/>
+
+	<target name="test">
+		<extract-src file="test-diagrams/test.graffle"/>	
+	</target>
+</project>
