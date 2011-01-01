@@ -28,13 +28,11 @@
 package org.epistem.graffle;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.zip.GZIPInputStream;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -64,6 +62,8 @@ public class PListParser extends DefaultHandler {
     private LinkedList<Object> stack = new LinkedList<Object>();
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'" );
+    
+    private static final byte[] GZIP_SIG = { 0x1f, (byte) 0x8b, 0x08, 0x00 };
     
     //push current item onto the stack
     private void push() {
@@ -192,15 +192,34 @@ public class PListParser extends DefaultHandler {
      */
     public static Object parse( File file ) throws Exception {
         if( file.isDirectory() ) file = new File( file, "data.plist" );
-        
+
         SAXParserFactory fact = SAXParserFactory.newInstance();
         fact.setNamespaceAware( false );
         fact.setValidating( false );
         SAXParser parser = fact.newSAXParser();
         
         PListParser plist = new PListParser();
-        parser.parse( file, plist );
+        
+        //detect compressed file
+        FileInputStream in = new FileInputStream( file );
+        byte[] sig = new byte[4];
+        in.read( sig );
+        in.close();
+        
+        if( Arrays.equals( sig, GZIP_SIG ) ) {
+            in = new FileInputStream( file );
+            try {
+                GZIPInputStream gzin = new GZIPInputStream( in );
+                parser.parse( gzin, plist );
+            }
+            finally {
+                in.close();
+            }
+        }        
+        else {
+            parser.parse( file, plist );
+        }
         
         return plist.plistObject;
-    }
+    }    
 }
