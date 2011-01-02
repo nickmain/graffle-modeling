@@ -97,4 +97,11 @@ public abstract class Graphic {
     
     @Override
     abstract public String toString();
+    
+    /**
+     * Get a string representing the location of the graphic
+     */
+    public String toLocationString() {
+        return  "'" + page.title + "'(" + x + "," + y + ")";
+    }
 }

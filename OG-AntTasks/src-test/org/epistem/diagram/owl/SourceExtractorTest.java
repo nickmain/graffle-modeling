@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------------------
-  Copyright (c) 2010, David N. Main
+  Copyright (c) 2011, David N. Main
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -25,75 +25,37 @@
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------*/
-package org.epistem.diagram.ant;
+/**
+ * 
+ */
+package org.epistem.diagram.owl;
 
 import java.io.File;
+import java.util.Map;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Task;
+import junit.framework.TestCase;
+
 import org.epistem.diagram.literate.SourceFileExtractor;
 import org.epistem.diagram.model.Diagram;
 import org.epistem.graffle.OmniGraffleDoc;
 
 /**
- * Ant task to extract source code from a diagram and write to target files.
+ * Test the source extractor
  *
  * @author nickmain
  */
-public class SourceExtractorTask extends Task {
-   
-    private File ogFile;
-    private File baseDir;
+public class SourceExtractorTest extends TestCase {
+
     
-    /**
-     * Set the diagram to read
-     */
-    public void setDiagram( File file ) {
-        this.ogFile = file;
-    }
-
-    /**
-     * Set the optional base dir for the generated source files
-     */
-    public void setDir( File dir ) {
-        baseDir = dir;
-    }
-    
-    @Override
-    public void execute() throws BuildException {
-
-        if( ogFile == null ) throw new BuildException( "diagram file is required" );
-        baseDir = ogFile.getParentFile();
+    public void testExtractor() throws Exception {
+        SourceFileExtractor extractor = new SourceFileExtractor();
         
-        OmniGraffleDoc doc;
-        try {
-            doc = new OmniGraffleDoc( ogFile );
-        }
-        catch( Exception e ) {
-            throw new BuildException( e );
-        }
-        
-        
-        Diagram diagram;
-        try {
-            diagram = new Diagram( doc );    
-        }
-        catch( Exception e ) {
-            e.printStackTrace();
-            throw new BuildException( e );
-        }
-      
-        log( "Processing diagram " + ogFile + " ..." );
-
-        SourceFileExtractor extractor = new SourceFileExtractor() {
-            @Override public void log( String message ) { SourceExtractorTask.this.log( "  " + message ); }           
-        };
-        
+        OmniGraffleDoc doc = new OmniGraffleDoc( new File( "test-diagrams/test-src-extract.graffle" ) );
+        Diagram diagram = new Diagram( doc );          
         diagram.accept( extractor );
         
-        extractor.writeFiles( baseDir );
-
-        log( "... done" );
+        Map<String, String> srcs = extractor.getFileSources();
+        assertEquals( srcs.get( "../src/bar.scm" ), "this is a test AA\nthis is a test 11\nthis is a\ntest A\nthis is a test 1\nA\nB\nC\n" );
+        assertEquals( srcs.get( "../src/foo.scm" ), "this is a test 2 B\nthis is a test 2\n" );
     }
 }
-
